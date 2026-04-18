@@ -320,7 +320,7 @@ export default function App() {
         .card { transition: box-shadow 0.15s; }
       `}</style>
       {/* ── NAV ── */}
-      <header style={{ background: T.nav, backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", borderBottom: `1px solid ${T.navBorder}`, position: "sticky", top: 0, zIndex: 200 }}>
+      <header style={{ background: T.nav, backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", borderBottom: `1px solid ${T.navBorder}`, position: "sticky", top: 0, zIndex: 200, paddingTop: "env(safe-area-inset-top)" }}>
         <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 24px" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 60 }}>
             {/* Brand */}
@@ -443,24 +443,25 @@ export default function App() {
                       {dayTasks.map(t => {
                         const c = sc(t.subject, dark);
                         return (
-                          <div key={t.id} onClick={() => toggle(t.id)} title={t.title} style={{
-                            fontSize: 10, padding: "3px 7px", borderRadius: 5, marginBottom: 3, cursor: "pointer",
+                          <div key={t.id} title={t.title} style={{
+                            fontSize: 10, padding: "3px 7px 3px 4px", borderRadius: 5, marginBottom: 3, cursor: "pointer",
                             background: dark ? c.bg : c.bg,
                             color: dark ? c.text : c.text,
                             border: dark ? `1px solid ${c.dot}30` : "none",
                             textDecoration: t.done ? "line-through" : "none",
                             opacity: t.done ? 0.4 : 1,
-                            overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis",
+                            display: "flex", alignItems: "center", gap: 2,
                             fontWeight: 500,
-                          }}>{t.title}</div>
+                          }}>
+                            <span onClick={() => toggle(t.id)} style={{ flex: 1, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{t.title}</span>
+                            <span onClick={() => remove(t.id)} style={{ flexShrink: 0, opacity: 0.5, fontSize: 11, lineHeight: 1, cursor: "pointer" }}>×</span>
+                          </div>
                         );
                       })}
                       {dayTasks.length > 0 && (
                         <div style={{ fontSize: 9, color: T.textFaint, position: "absolute", bottom: 22, right: 10 }}>{dayDone}/{dayTasks.length}</div>
                       )}
-                      {(!isPast || isToday) && (
-                        <button className="add-day-btn" onClick={() => setShowAdd(showAdd === ymd ? null : ymd)} style={{ opacity: 0, position: "absolute", bottom: 8, left: "50%", transform: "translateX(-50%)", background: T.accent, color: T.accentText, border: "none", borderRadius: 6, width: 24, height: 18, fontSize: 15, lineHeight: "18px", textAlign: "center", padding: 0, fontWeight: 300 }}>+</button>
-                      )}
+                      <button className="add-day-btn" onClick={() => setShowAdd(showAdd === ymd ? null : ymd)} style={{ opacity: 0, position: "absolute", bottom: 8, left: "50%", transform: "translateX(-50%)", background: T.accent, color: T.accentText, border: "none", borderRadius: 6, width: 24, height: 18, fontSize: 15, lineHeight: "18px", textAlign: "center", padding: 0, fontWeight: 300 }}>+</button>
                     </div>
                   );
                 })}
@@ -589,6 +590,12 @@ function PlanPicker({ planItems, existingTasks, dateStr, T, onAdd, onClose }) {
   const [activeSub, setActiveSub] = useState(_lastPickerSubject);
   const added = new Set(existingTasks.filter(t => t.date === dateStr && t.planItemId).map(t => t.planItemId));
   const filtered = planItems.filter(p => p.subject === activeSub);
+  // Sort: not-yet-added first, already-added at bottom
+  const sorted = [...filtered].sort((a, b) => {
+    const aDone = added.has(a.id) ? 1 : 0;
+    const bDone = added.has(b.id) ? 1 : 0;
+    return aDone - bDone;
+  });
 
   const handleSubject = (s) => { _lastPickerSubject = s; setActiveSub(s); };
 
@@ -607,16 +614,28 @@ function PlanPicker({ planItems, existingTasks, dateStr, T, onAdd, onClose }) {
       {/* Items */}
       <div style={{ maxHeight: 240, overflowY: "auto", padding: "8px" }}>
         {filtered.length === 0 && <div style={{ textAlign: "center", padding: "24px 0", color: T.textFaint, fontSize: 12.5 }}>אין פריטים בתכנית לנושא זה</div>}
-        {filtered.map(item => {
-          const c = sc(item.subject, T.isDark);
-          const done = added.has(item.id);
+        {added.size > 0 && filtered.some(p => !added.has(p.id)) && filtered.some(p => added.has(p.id)) && (
+          <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: 1.5, color: T.textFaint, textTransform: "uppercase", padding: "4px 10px 2px", marginTop: 4 }}>טרם נוסף</div>
+        )}
+        {sorted.map((item, idx) => {
+          const prevDone = idx > 0 && added.has(sorted[idx-1].id);
+          const thisDone = added.has(item.id);
           return (
-            <div key={item.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 10px", borderRadius: 9, marginBottom: 3, background: done ? T.cardHover : "transparent", opacity: done ? 0.55 : 1 }}>
-              <span style={{ fontSize: 13, color: T.text }}>{item.title}</span>
-              {done
-                ? <span style={{ fontSize: 10.5, color: "#22C55E", background: T.isDark ? "#0F2E1A" : "#F0FDF4", borderRadius: 5, padding: "2px 8px", fontWeight: 600 }}>✓ נוסף</span>
-                : <button onClick={() => onAdd(item)} style={{ background: c.dot, color: "#fff", border: "none", borderRadius: 7, padding: "4px 12px", fontSize: 11.5, fontWeight: 600, cursor: "pointer" }}>+ הוסף</button>
-              }
+            <div key={item.id}>
+              {thisDone && !prevDone && idx > 0 && (
+                <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px 2px" }}>
+                  <div style={{ flex: 1, height: 1, background: T.divider }} />
+                  <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: 1.5, color: T.textFaint, textTransform: "uppercase" }}>כבר נוסף</span>
+                  <div style={{ flex: 1, height: 1, background: T.divider }} />
+                </div>
+              )}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 10px", borderRadius: 9, marginBottom: 3, background: thisDone ? T.cardHover : "transparent", opacity: thisDone ? 0.6 : 1 }}>
+                <span style={{ fontSize: 13, color: T.text }}>{item.title}</span>
+                {thisDone
+                  ? <span style={{ fontSize: 10.5, color: "#22C55E", background: T.isDark ? "#0F2E1A" : "#F0FDF4", borderRadius: 5, padding: "2px 8px", fontWeight: 600 }}>✓ נוסף</span>
+                  : <button onClick={() => onAdd(item)} style={{ background: sc(item.subject, T.isDark).dot, color: "#fff", border: "none", borderRadius: 7, padding: "4px 12px", fontSize: 11.5, fontWeight: 600, cursor: "pointer" }}>+ הוסף</button>
+                }
+              </div>
             </div>
           );
         })}
