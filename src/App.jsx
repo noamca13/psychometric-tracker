@@ -411,11 +411,9 @@ export default function App() {
               )}
             </div>
 
-            {/* Week grid – 2 rows */}
-            {[weekDates.slice(0,4), weekDates.slice(4,7)].map((row, ri) => (
-              <div key={ri} style={{ display: "grid", gridTemplateColumns: `repeat(${row.length}, 1fr)`, gap: 8, marginBottom: 8 }}>
-                {row.map((date, i) => {
-                  const gi = ri === 0 ? i : i + 4;
+            {/* Week grid – horizontal scroll on mobile */}
+            <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8, WebkitOverflowScrolling: "touch", scrollSnapType: "x mandatory" }}>
+              {weekDates.map((date, gi) => {
                   const ymd = toYMD(date);
                   const isToday = ymd === todayStr;
                   const isPast = date < new Date(new Date().setHours(0,0,0,0));
@@ -425,11 +423,14 @@ export default function App() {
                   const vibeLabel = dayTasks.length === 0 ? null : dayDone === dayTasks.length ? "✓" : dayTasks.length <= 3 ? "קל" : dayTasks.length <= 6 ? "עמוס" : "כבד";
                   return (
                     <div key={ymd} className="day-col" style={{
-                      background: isToday ? T.accentBg : T.page,
+                      background: isToday ? T.accentBg : T.card,
                       border: `1px solid ${isToday ? T.accentBorder : T.cardBorder}`,
-                      borderRadius: 12, padding: "12px 10px 36px", minHeight: 160,
-                      position: "relative", opacity: isPast && !isToday ? 0.55 : 1,
-                      boxShadow: isToday ? `0 0 0 1px ${T.accent}25, ${T.shadowMd}` : "none",
+                      borderRadius: 12, padding: "12px 12px 36px",
+                      minWidth: "calc(50% - 4px)", maxWidth: "calc(50% - 4px)",
+                      flexShrink: 0, position: "relative",
+                      opacity: isPast && !isToday ? 0.65 : 1,
+                      boxShadow: isToday ? `0 0 0 1px ${T.accent}25, ${T.shadowMd}` : T.shadow,
+                      scrollSnapAlign: "start",
                     }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
                         <div>
@@ -444,29 +445,27 @@ export default function App() {
                         const c = sc(t.subject, dark);
                         return (
                           <div key={t.id} title={t.title} style={{
-                            fontSize: 10, padding: "3px 7px 3px 4px", borderRadius: 5, marginBottom: 3, cursor: "pointer",
-                            background: dark ? c.bg : c.bg,
-                            color: dark ? c.text : c.text,
+                            fontSize: 11, padding: "4px 8px 4px 6px", borderRadius: 6, marginBottom: 4, cursor: "pointer",
+                            background: c.bg, color: c.text,
                             border: dark ? `1px solid ${c.dot}30` : "none",
                             textDecoration: t.done ? "line-through" : "none",
                             opacity: t.done ? 0.4 : 1,
-                            display: "flex", alignItems: "center", gap: 2,
+                            display: "flex", alignItems: "center", gap: 4,
                             fontWeight: 500,
                           }}>
                             <span onClick={() => toggle(t.id)} style={{ flex: 1, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{t.title}</span>
-                            <span onClick={() => remove(t.id)} style={{ flexShrink: 0, opacity: 0.5, fontSize: 11, lineHeight: 1, cursor: "pointer" }}>×</span>
+                            <span onClick={() => remove(t.id)} style={{ flexShrink: 0, opacity: 0.4, fontSize: 14, lineHeight: 1, cursor: "pointer" }}>×</span>
                           </div>
                         );
                       })}
                       {dayTasks.length > 0 && (
-                        <div style={{ fontSize: 9, color: T.textFaint, position: "absolute", bottom: 22, right: 10 }}>{dayDone}/{dayTasks.length}</div>
+                        <div style={{ fontSize: 9, color: T.textFaint, position: "absolute", bottom: 22, right: 12 }}>{dayDone}/{dayTasks.length}</div>
                       )}
                       <button className="add-day-btn" onClick={() => setShowAdd(showAdd === ymd ? null : ymd)} style={{ opacity: 0, position: "absolute", bottom: 8, left: "50%", transform: "translateX(-50%)", background: T.accent, color: T.accentText, border: "none", borderRadius: 6, width: 24, height: 18, fontSize: 15, lineHeight: "18px", textAlign: "center", padding: 0, fontWeight: 300 }}>+</button>
                     </div>
                   );
-                })}
-              </div>
-            ))}
+              })}
+            </div>
 
             {/* PlanPicker for selected day */}
             {showAdd && weekDates.some(d => toYMD(d) === showAdd) && (
