@@ -8,9 +8,27 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="פסיכומטרי" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>" />
-    <link rel="apple-touch-icon" href="/psychometric-tracker/apple-touch-icon.png" />
     <title>📚 פסיכומטרי – מעקב למידה</title>
   </head>
+  <script>
+(function(){
+  try{
+    var c=document.createElement('canvas');
+    c.width=180;c.height=180;
+    var ctx=c.getContext('2d');
+    ctx.fillStyle='#0c0c0e';
+    ctx.beginPath();ctx.rect(0,0,180,180);ctx.fill();
+    ctx.font='110px serif';
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.fillText('\uD83C\uDFAF',90,95);
+    var link=document.createElement('link');
+    link.rel='apple-touch-icon';
+    link.href=c.toDataURL('image/png');
+    document.head.appendChild(link);
+  }catch(e){}
+})();
+</script>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
