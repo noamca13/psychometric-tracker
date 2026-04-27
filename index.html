@@ -10,23 +10,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>" />
     <title>📚 פסיכומטרי – מעקב למידה</title>
     <script>
-(function(){
-  try{
-    var c=document.createElement('canvas');
-    c.width=180;c.height=180;
-    var ctx=c.getContext('2d');
-    ctx.fillStyle='#0c0c0e';
-    ctx.beginPath();ctx.rect(0,0,180,180);ctx.fill();
-    ctx.font='110px serif';
-    ctx.textAlign='center';
-    ctx.textBaseline='middle';
-    ctx.fillText('\uD83C\uDFAF',90,95);
-    var link=document.createElement('link');
-    link.rel='apple-touch-icon';
-    link.href=c.toDataURL('image/png');
-    document.head.appendChild(link);
-  }catch(e){}
-})();
+<link rel="apple-touch-icon" href="data:image/png;base64,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" />
     </script>
   </head>
   <body>
